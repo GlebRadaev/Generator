@@ -2,6 +2,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.*;
 
 class Generator {
@@ -21,7 +22,7 @@ class Generator {
     // Функция получения начального параметра
     static long fGetToSeedParameter() {
         GregorianCalendar vGregorianCalendar = new GregorianCalendar();
-        return (long) (vGregorianCalendar.get(Calendar.MILLISECOND) * Math.random());
+        return (long) (vGregorianCalendar.get(Calendar.MILLISECOND) * Math.random() * vGregorianCalendar.get(Calendar.SECOND));
     }
 
     // Функция вывода последовательности
@@ -81,8 +82,8 @@ class Generator {
         writer.flush();
     }
     // Функция факториала
-    public static long factorial(double n) {
-        long fact = 1;
+    public static int factorial(int n) {
+        int fact = 1;
         for (int i = 2; i <= n; i++) {
             fact = fact * i;
         }
@@ -115,6 +116,7 @@ class Generator {
 
     // Критерий Пирсона
     public static boolean fPirson (long [] aiArray, int amount_number) {
+        System.out.println("Критерий Пирсона");
         int mod = 5;
         HashMap<Integer, Double> points = new HashMap<>();
         points.put(1, 0.2971);
@@ -126,8 +128,8 @@ class Generator {
         points.put(99, 13.28);
 
         long[] aiResult = aiArray;
-        long[] aiResultMod5 = new long[5];
-        double P_s = 0.2;
+        long[] aiResultMod5 = new long[mod];
+        double P_s = 1.0 / mod;
 
         HashMap<Integer, Integer> Y_s = new HashMap<>();
         int V = 0;
@@ -176,6 +178,7 @@ class Generator {
 
     // Критерий Колмогорова-Смирнова
     public static boolean fKS (long [] aiArray, int amount_number) {
+        System.out.println("Критерий Колмогорова-Смирнова");
         long mod = 1000000000;
         Map<Integer, Double> points = new HashMap<>();
         points.put(1, 0.03807);
@@ -225,6 +228,7 @@ class Generator {
     }
 
     public static boolean fMonotonnosti (long [] aiArray, int amount_number) {
+        System.out.println("Критерий Монотонности");
         //  будем брать последовательно длины 40
         Map<Integer, Double> points = new HashMap<>();
         points.put(1, 2.558);
@@ -237,15 +241,19 @@ class Generator {
         int mod = 10;
         long[] aiResult = aiArray;
         ArrayList<Integer> mas_mod = new ArrayList<>();
-        System.out.println("Критерий монотонности");
         // Mассив чисел по мод 10
         for (int i = 0; i < aiResult.length; i++) {
             mas_mod.add((int) (aiResult[i] % mod));
         }
-        System.out.println("Последовательность по модулю 10:");
-        System.out.println(mas_mod);
+        // System.out.println("Последовательность по модулю 10:");
+        // System.out.println(mas_mod);
 
         ArrayList<Integer> countMass=new ArrayList<>(5);
+        countMass.add(0);
+        countMass.add(0);
+        countMass.add(0);
+        countMass.add(0);
+        countMass.add(0);
         ArrayList<Integer> listOfLength = new ArrayList<>();
         int curLength = 0;
         // Нахождение всех подпоследовательностей. При переходе на убывающую, данный элемент заменяется -1
@@ -273,35 +281,48 @@ class Generator {
                 unsortedListNoOnes.add(i);
             }
         }
-        System.out.println("Возрастающие подпоследовательности:");
-        System.out.println(unsortedListNoOnes);
-        System.out.println("Длины возрастающих подпоследовательностей:");
-        System.out.println(listOfLength);
-        System.out.println("Количество подпоследовательностей (mass_count):");
+
+        //  System.out.println("Возрастающие подпоследовательности:");
+        //  System.out.println(unsortedListNoOnes);
+        //  System.out.println("Длины возрастающих подпоследовательностей:");
+        //  System.out.println(listOfLength);
+        //  System.out.println("Количество подпоследовательностей (mass_count):");
         for (int i = 0; i < listOfLength.size(); i++) {
-            int index = listOfLength.get(i);
-            int value = index + 1;
-            countMass.set(index, value);
+            int lengthOfMassive = listOfLength.get(i);
+            int value = countMass.get(lengthOfMassive);
+            value++;
+            countMass.set(lengthOfMassive, value);
+
         }
+
         countMass.remove(countMass.get(0));
-        System.out.println(countMass);
 
         ArrayList<Double> verMass=new ArrayList<>(4);
-        verMass.set(0, 0.5);
+        verMass.add(0, 0.5);
+        verMass.add(1, 0.0);
+        verMass.add(2, 0.0);
+        verMass.add(3, 0.0);
         // Построение массива вероятностей встречи подпоследовательностей длинн от 1 до 4
         for (int i = 1; i < verMass.size() ; i++) {
-            double k = i;
-            double ver = (double) ((1/ factorial(k+1)) - (1/ factorial(k+2)));
-            verMass.add(ver);
+            int k = i;
+            double scale = Math.pow(10, 2);
+            double K1 = ( 1.0 / factorial(k+1));
+            K1 = Math.ceil(K1 * scale) / scale;
+            double K2 = ( 1.0 / factorial(k+2));
+            K2 = Math.ceil(K2 * scale) / scale;
+            double ver =  K1 - K2;
+            ver = Math.ceil(ver * scale) / scale;
+            verMass.set(i, ver);
         }
+
         System.out.println("Вероятности встречи возрастающей подпоследовательности (verMass):");
         System.out.println(verMass);
 
         int V = 0;
         // Подсчет конечного значения
-        for (int i = 1; i <= countMass.size(); i++) {
+        for (int i = 0; i < countMass.size(); i++) {
             if (countMass.get(i) != 0) {
-                V+=(Math.pow(countMass.get(i)-amount_number*verMass.get(i), 2))/amount_number*verMass.get(i);
+                V+=(Math.pow(countMass.get(i)-amount_number*verMass.get(i), 2))/(amount_number*verMass.get(i));
             }
         }
         System.out.println("V= " + V);
@@ -319,6 +340,7 @@ class Generator {
 
     // Критерий Т
     public static void fT(long[] aiArray, int amount_number) {
+        System.out.println("Критерий Т");
         // будем брать последовательно длины 20 чтобы соответствовать строке из таблицы
         HashMap<Integer, Double> points = new HashMap<>();
         points.put(1, 0.03807);
@@ -399,7 +421,8 @@ class Generator {
 
     public static void main(String[] args) throws IOException {
         System.out.println("Добро пожаловать в программу \"Линейный конгруэнтный генератор\".");
-        int iLengthOfRandomNum = fGetLengthArray();
+        // int iLengthOfRandomNum = fGetLengthArray();
+        int iLengthOfRandomNum = 1000;
 
         long iSeed = fGetToSeedParameter();
         // Генерация первой последовательности
@@ -408,15 +431,15 @@ class Generator {
         long [] aiResultRandomNum2 = fGenerate(iSeed, iMod2, iMultiplier2, iInc2);
         // Перемешивание последовательностей
         long[] iResult = fShuffle(aiResultRandomNum1, aiResultRandomNum2, iMod2, iLength);
-        // Получение последовательности заданной длины
+        System.out.println("Перемешивание последовательностей");
         long[] aiResponse = Arrays.copyOfRange(iResult, 0, iLengthOfRandomNum);
         // Запись в файл
-        fWriteToTxt(aiResponse, sFilePathName);
+        // fWriteToTxt(aiResponse, sFilePathName);
 
         // Блок критериев TODO: раскоментировать для проверок полученной последовательность
         // fPirson(aiResponse, iLengthOfRandomNum);
         // fKS(aiResponse, iLengthOfRandomNum);
-        // fMonotonnosti(iResult, iLengthOfRandomNum);
+        fMonotonnosti(aiResponse, iLengthOfRandomNum);
         // fT(iResult, iLengthOfRandomNum);
 
         System.out.println("Программа завершена.");
